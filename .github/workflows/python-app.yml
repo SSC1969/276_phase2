@@ -42,16 +42,16 @@ jobs:
           pip install --group dev
 
       - name: Run tests and generate coverage report
-        run: pytest -q --cov-report xml:coverage.xml
+        run: pytest -q --cov-report xml:.github/cov.xml
   coverage:
-    name: Test Coverage
+    name: Test Coverages
     needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Get coverage
         uses: orgoro/coverage@v3.2
         with:
-          coverageFile: coverage.xml
+          coverageFile: .github/cov.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           thresholdAll: 0.5
           thresholdModified: 0.6
