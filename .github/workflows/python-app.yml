@@ -60,7 +60,7 @@ jobs:
         uses: orgoro/coverage@v3.2
         with:
           coverageFile: cov.xml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.SSC1969_COVERAGE }}
           thresholdAll: 0.5
           thresholdModified: 0.6
         
