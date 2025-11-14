@@ -1,9 +1,9 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 
-from nicegui import Event, ui
+from nicegui import ui
 
-from game.daily import handle_guess
+from game.daily import RoundStats, handle_guess
 
 # NiceGUI elements go here
 
@@ -20,9 +20,7 @@ game
 
 
 def content():
-    # TODO: Replace with data type containing actual guess feedback
-    guess_graded = Event[str]()
-    game_ended = Event[bool]()
+    round_stats = RoundStats()
 
     options = []
     with open("src/game/countries.json") as file:
@@ -46,19 +44,15 @@ def content():
         if it's valid.
         """
         if guess_input.validate():
-            handle_guess(guess_input.value)
-
-            # TODO: Move this emit into the actual handle_guess function
-            guess_graded.emit(guess_input.value)
-
+            handle_guess(guess_input.value, round_stats)
             guess_input.value = ""
 
             # TODO: Move this emit into game_end()
             if len(feedback.rows) == 6:
-                game_ended.emit(False)
+                round_stats.game_ended.emit(False)
 
     # TODO: Add actual feedback instead of placeholder data
-    @guess_graded.subscribe
+    @round_stats.guess_graded.subscribe
     def display_feedback(guess: str):
         """
         Displays the feedback passed as an argument in the feedback table
@@ -74,7 +68,7 @@ def content():
         }
         feedback.add_row(row)
 
-    @game_ended.subscribe
+    @round_stats.game_ended.subscribe
     def display_results(won: bool):
         """
         Displays the game results pop-up
@@ -84,14 +78,10 @@ def content():
         else:
             text = "Too bad!"
 
-        # TODO: Grab these values from the actual round data
-        time: timedelta = timedelta(hours=1)
-        guesses: int = 4
-
         with ui.dialog() as dialog, ui.card():
             ui.label(text)
-            ui.label(f"Time: {time}")
-            ui.label(f"Guesses: {guesses}")
+            ui.label(f"Time: {str(round_stats.round_time).split('.')[0]}")
+            ui.label(f"Guesses: {round_stats.guesses}")
             ui.button("Close", on_click=dialog.close)
 
             # TODO: Display leaderboard/player stats here?
@@ -100,8 +90,12 @@ def content():
 
     with ui.column(align_items="center").classes("mx-auto w-full max-w-md p-4"):
         timer = ui.label().mark("timer")
-        # TODO: Replace with actual game timer, not just current time
-        ui.timer(1.0, lambda: timer.set_text(f"{datetime.now():%X}"))
+        ui.timer(
+            1.0,
+            lambda: timer.set_text(
+                f"{str(datetime.now(timezone.utc) - round_stats.round_start).split('.')[0]}"
+            ),
+        )
 
         columns = [
             {"name": "name", "label": "Name", "field": "name"},
