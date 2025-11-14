@@ -1,5 +1,6 @@
 import datetime
 from io import StringIO
+from unittest.mock import patch
 
 from game import daily
 from game.daily import compare_countries
