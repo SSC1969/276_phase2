@@ -18,6 +18,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 dependencies = [
     "countryinfo>=0.1.2",
+    "nicegui>=3.3.0",
 ]
 
 [build-system]
@@ -46,3 +47,6 @@ omit = [
 [tool.pytest.ini_options]
 pythonpath = "src"
 testpaths = "tests"
+asyncio_mode = "auto"
+main_file = "src/main.py"
+addopts = "-p nicegui.testing.user_plugin"
