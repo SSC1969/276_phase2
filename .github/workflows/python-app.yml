@@ -39,7 +39,7 @@ jobs:
           pip install --group dev
 
       - name: Run tests and generate coverage report
-        run: pytest -q --cov-report xml:cov.xml
+        run: pytest -q --cov-report xml:cov.xml --cov
 
       - name: Upload test coverage
         uses: actions/upload-artifact@v5
