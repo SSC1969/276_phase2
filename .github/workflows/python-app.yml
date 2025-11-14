@@ -42,13 +42,7 @@ jobs:
           pip install --group dev
 
       - name: Run tests and generate coverage report
-        run: pytest -q --cov-report xml
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v5
-        with:
-          name: Coverage Report
-          path: cov.xml
-          
+        run: pytest -q --cov-report xml:coverage.xml
   coverage:
     name: Test Coverage
     needs: test
@@ -57,7 +51,7 @@ jobs:
       - name: Get coverage
         uses: orgoro/coverage@v3.2
         with:
-          coverageFile: cov.xml
+          coverageFile: coverage.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           thresholdAll: 0.5
           thresholdModified: 0.6
