@@ -26,44 +26,44 @@ class Leaderboard:
     def __init__(self, session: Session):
         self.session = session
 
-    async def create_user_entry(user_id: int):
+    async def create_user_entry(self, user_id: int):
         """
         Creates a new LeaderboardEntry for the given user,
         if one doesn't already exit
         """
         pass
 
-    async def update_user_entry(user_id: int):
+    async def update_user_entry(self, user_id: int):
         """
         Updates a user's leaderboard stats based on their statistics
         from StatisticsRepository
         """
         pass
 
-    async def get_entry(user_id: int) -> LeaderboardEntry:
+    async def get_entry(self, user_id: int) -> LeaderboardEntry:
         """
         Get a leaderboard entry by user id
         """
         pass
 
-    async def get_all(self) -> list[LeaderboardEntry]:
+    async def get_all(self, ) -> list[LeaderboardEntry]:
         """Get all users"""
         users = self.session.scalars(select(LeaderboardEntry)).all()
         return users
 
 
-    async def get_top_10_entry(position: int) -> LeaderboardEntry:
+    async def get_top_10_entry(self, position: int) -> LeaderboardEntry:
         """
         Gets top 10 leaderboard entries
         """
 
-    async def get_250_entries(position: int) -> list[LeaderboardEntry]:
+    async def get_250_entries(self, position: int) -> list[LeaderboardEntry]:
         """
         Get 250 leaderboard entries from the given position (from the top)
         """
         pass
 
-    async def get_friend_entries(user_id: int) -> list[LeaderboardEntry]:
+    async def get_friend_entries(self, user_id: int) -> list[LeaderboardEntry]:
         """
         Get all leaderboard entries for the given user's friends only
         (including the given user)
