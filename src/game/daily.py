@@ -55,7 +55,7 @@ def compare_countries(guess: Country, answer: Country) -> GuessFeedback:
     """
     Check if the two countries match.
     If they match, return True.
-    If not, compare the following statistics and print feedback:
+    If not, compare the following statistics:
     - Population
     - Geographical Size
     - Currencies

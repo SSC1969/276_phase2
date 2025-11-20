@@ -34,7 +34,6 @@ FORMAT = logging.Formatter(
 def index_page():
     # Code to allow a log window to be displayed during the game by pressing 'l'
     def enable_logger():
-        print("logged toggled")
         log_window.visible = not log_window.visible
 
     # Handles keyboard inputs
