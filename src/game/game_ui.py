@@ -142,9 +142,7 @@ def content():
 
         with ui.dialog() as dialog, ui.card():
             ui.label(text)
-            ui.label("The correct country was " + get_daily_country().name.title()).mark(
-                "country_confirm"
-            )
+            ui.label("The correct country was " + get_daily_country().name.title())
             ui.label(f"Time: {str(round_stats.round_length).split('.')[0]}")
             ui.label(f"Guesses: {round_stats.guesses}")
             ui.button("Close", on_click=dialog.close)

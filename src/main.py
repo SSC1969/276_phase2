@@ -13,11 +13,11 @@ logger = logging.getLogger("phase2")
 class LogElementHandler(logging.Handler):
     """A logging handler that emits messages to a log element."""
 
-    def __init__(self, element: ui.log, level: int = logging.NOTSET) -> None:
+    def __init__(self, element: ui.log, level: int = logging.NOTSET) -> None:  # pragma: no cover
         self.element = element
         super().__init__(level)
 
-    def emit(self, record: logging.LogRecord) -> None:
+    def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover
         try:
             msg = self.format(record)
             self.element.push(msg)
@@ -34,6 +34,7 @@ FORMAT = logging.Formatter(
 def index_page():
     # Code to allow a log window to be displayed during the game by pressing 'l'
     def enable_logger():
+        print("logged toggled")
         log_window.visible = not log_window.visible
 
     # Handles keyboard inputs
@@ -51,7 +52,7 @@ def index_page():
         # Just assign to a standard log handler if we're testing
         handler = logging.StreamHandler()
     else:
-        handler = LogElementHandler(log_element, logging.INFO)
+        handler = LogElementHandler(log_element, logging.INFO)  # pragma: no cover
     logger.addHandler(handler)
     handler.setFormatter(FORMAT)
 
