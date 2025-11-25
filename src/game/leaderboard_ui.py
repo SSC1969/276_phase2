@@ -1,12 +1,31 @@
-# src/game/leaderboard_ui.py
-
 from typing import List, Dict, Any
 
+import httpx
 from nicegui import ui
+
+API_BASE_URL = "http://localhost:8000" 
 
 
 def fetch_leaderboard() -> List[Dict[str, Any]]:
-    """Return fake leaderboard data for UI testing."""
+    """Try to fetch leaderboard from backend; fallback to fake data."""
+
+    try:
+        with httpx.Client(base_url=API_BASE_URL, timeout=2.0) as client:
+            response = client.get("/v2/leaderboard")
+            response.raise_for_status()
+            entries = response.json()
+
+        entries.sort(key=lambda e: e["daily_streak"], reverse=True)
+        for i, e in enumerate(entries, start=1):
+            e["rank"] = i
+
+        return entries
+
+    except Exception:
+        # Backend is missing / unreachable → fallback to fake
+        pass
+
+    # Fake data 
     rows: List[Dict[str, Any]] = [
         {
             "entry_id": 1,
@@ -36,7 +55,7 @@ def fetch_leaderboard() -> List[Dict[str, Any]]:
             "average_daily_guesses": 2,
             "average_daily_time": "19.7s",
             "longest_survival_streak": 20,
-            "high_score": 2005,
+                       "high_score": 2005,
         },
         {
             "entry_id": 4,
@@ -50,7 +69,7 @@ def fetch_leaderboard() -> List[Dict[str, Any]]:
         },
     ]
 
-    # sort by score high → low and add rank
+    # sort by daily streak + rank
     rows.sort(key=lambda e: e["daily_streak"], reverse=True)
     for i, e in enumerate(rows, start=1):
         e["rank"] = i
@@ -59,59 +78,25 @@ def fetch_leaderboard() -> List[Dict[str, Any]]:
 
 
 def leaderboard_page() -> None:
-    """Build the leaderboard UI with NiceGUI."""
-
     ui.label("Leaderboard").classes("text-3xl font-bold mb-4")
 
     columns = [
         {"name": "rank", "label": "Rank", "field": "rank", "sortable": True},
-        {"name": "user_id", "label": "User", "field": "user_id", "sortable": True},
-        {
-            "name": "daily_streak",
-            "label": "Daily Streak",
-            "field": "daily_streak",
-            "sortable": True,
-        },
-        {
-            "name": "longest_daily_streak",
-            "label": "Longest Daily Streak",
-            "field": "longest_daily_streak",
-            "sortable": True,
-        },
-        {
-            "name": "average_daily_guesses",
-            "label": "Avg Guesses",
-            "field": "average_daily_guesses",
-            "sortable": True,
-        },
-        {
-            "name": "average_daily_time",
-            "label": "Avg Time",
-            "field": "average_daily_time",
-            "sortable": True,
-        },
-        {
-            "name": "longest_survival_streak",
-            "label": "Survival Streak",
-            "field": "longest_survival_streak",
-            "sortable": True,
-        },
-        {
-            "name": "high_score",
-            "label": "High Score",
-            "field": "high_score",
-            "sortable": True,
-        },
+        {"name": "user_id", "label": "User_ID", "field": "user_id", "sortable": True},
+        {"name": "daily_streak", "label": "Daily Streak", "field": "daily_streak", "sortable": True},
+        {"name": "longest_daily_streak", "label": "Longest Daily Streak", "field": "longest_daily_streak", "sortable": True},
+        {"name": "average_daily_guesses", "label": "Avg Guesses", "field": "average_daily_guesses", "sortable": True},
+        {"name": "average_daily_time", "label": "Avg Time", "field": "average_daily_time", "sortable": True},
+        {"name": "longest_survival_streak", "label": "Survival Streak", "field": "longest_survival_streak", "sortable": True},
+        {"name": "high_score", "label": "High Score", "field": "high_score", "sortable": True},
     ]
 
-    # fill table immediately with fake data
     table = ui.table(
         columns=columns,
-        rows=fetch_leaderboard(),
+        rows=fetch_leaderboard(),  
         row_key="entry_id",
     ).classes("w-full")
 
-    # optional: refresh button just reloads fake data
     def load_data():
         table.rows = fetch_leaderboard()
 
