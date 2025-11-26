@@ -154,6 +154,7 @@ async def test_win_game(user: User, mocked_stats_repo) -> None:
     await user.should_see(ui.dialog)
     await user.should_see("Congratulations!")
     await user.should_see("The correct country was United States")
+    await user.should_see(ui.table)
 
 
 async def test_lose_game(user: User, mocked_stats_repo) -> None:
@@ -169,3 +170,5 @@ async def test_lose_game(user: User, mocked_stats_repo) -> None:
 
     await user.should_see(ui.dialog)
     await user.should_see("Too bad!")
+    await user.should_see("The correct country was United States")
+    await user.should_see(ui.table)

@@ -138,14 +138,14 @@ def content():
         else:
             text = "Too bad!"
 
-        with ui.dialog() as dialog, ui.card().classes("w-3/4"):
+        with ui.dialog() as dialog, ui.card(align_items="center").style("max-width: none"):
             ui.label(text)
             ui.label("The correct country was " + get_daily_country().name.title())
             ui.label(f"Time: {str(round_stats.round_length).split('.')[0]}")
             ui.label(f"Guesses: {round_stats.guesses}")
-            ui.button("Close", on_click=dialog.close)
 
             popup_leaderboard("daily")
+            ui.button("Close", on_click=dialog.close)
 
             dialog.open()
 
