@@ -49,18 +49,20 @@ def content():
         """
         if guess.lower() not in options:
             return "Not a valid country!"
-        if guess.lower() in round_stats.guessed_names:
+        elif guess.lower() in round_stats.guessed_names:
             return "Already guessed!"
-        return None
+        else:
+            return None
 
-    def try_guess():
+    async def try_guess():
         """
         Validates an inputted guess and passes it into the guess handler
         if it's valid.
         """
         if guess_input.validate():
-            handle_guess(guess_input.value, round_stats)
+            val = guess_input.value
             guess_input.value = ""
+            await handle_guess(val, round_stats)
 
     @round_stats.guess_graded.subscribe
     def display_feedback(country: Country, feedback: GuessFeedback):
@@ -163,17 +165,22 @@ def content():
         guesses = ui.grid(columns=7).classes("w-full")
 
         with ui.card(align_items="center"):
+
+            def clear_input_error():
+                guess_input.error = None
+
             guess_input = (
                 ui.input(
                     label="Guess",
                     placeholder="Enter a country",
                     autocomplete=options,
                     validation=is_guess_valid,
+                    on_change=clear_input_error,
                 )
                 .without_auto_validation()
-                .on("keydown.enter", try_guess)
+                .on("keydown.enter", lambda: try_guess())
             )
-            submit = ui.button("Submit", on_click=try_guess)
+            submit = ui.button("Submit", on_click=lambda: try_guess())
 
 
 # button to display leaderboards
