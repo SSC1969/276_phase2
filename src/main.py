@@ -6,8 +6,10 @@ from nicegui.events import KeyEventArguments
 
 from game import game_ui
 from game.daily import get_daily_country
+from game.leaderboard_ui import leaderboard_page
 
 logger = logging.getLogger("phase2")
+
 
 
 class LogElementHandler(logging.Handler):
@@ -26,7 +28,7 @@ class LogElementHandler(logging.Handler):
 
 
 FORMAT = logging.Formatter(
-    "[%(asctime)s %(filename)s->%(funcName)s():%(lineno)s]%(levelname)s: %(message)s"
+    "[%(asctime)s %(filename)s->%(funcName)s():%(lineno)s] %(levelname)s: %(message)s"
 )
 
 
@@ -51,9 +53,10 @@ def index_page():
         # Just assign to a standard log handler if we're testing
         handler = logging.StreamHandler()
     else:
-        handler = LogElementHandler(log_element, logging.INFO)  # pragma: no cover
-    logger.addHandler(handler)
+        handler = LogElementHandler(log_element)  # pragma: no cover
     handler.setFormatter(FORMAT)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
 
     # Ensure that the handler is removed when a client disconnects
     ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
@@ -65,6 +68,13 @@ def index_page():
     ui.keyboard(on_key=handle_key)
 
     game_ui.content()
+
+
+
+@ui.page("/leaderboard")
+def _():
+    leaderboard_page()
+
 
 
 ui.run(title="CMPT276 Project", dark=None)
