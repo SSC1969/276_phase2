@@ -1,10 +1,13 @@
-from datetime import timedelta
+from datetime import date, timedelta
 
 import pytest
+from shared.database import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from phase2.leaderboard import Base, Leaderboard, LeaderboardEntry
+from phase2.friends import Friendship
+from phase2.leaderboard import Leaderboard, LeaderboardEntry
+from phase2.statistics import RoundStatistics
 
 
 @pytest.fixture(scope="function")
@@ -82,6 +85,22 @@ def create_entry(
     session.commit()
     session.refresh(entry)
     return entry
+
+
+
+def add_round(db, user_id, won=True, guesses=3, mode="daily", streak=1):
+    """Insert a RoundStatistics row."""
+    row = RoundStatistics(
+        user_id=user_id,
+        round_length=timedelta(seconds=60),
+        won=won,
+        guesses=guesses,
+        mode=mode,
+        daily_date=date.today(),
+        survival_streak=streak,
+    )
+    db.add(row)
+    db.commit()
 
 
 @pytest.mark.asyncio
@@ -198,5 +217,34 @@ async def test_get_250_entries_from_position_50(repo, session):
 
 
 @pytest.mark.asyncio
-async def get_friend_entries(repo):
-    pass
+async def test_get_friends_entries_returns_sorted_results(session):
+    db = session
+    
+    # Setup: user 1 is friends with 2 and 3
+    db.add_all([
+        Friendship(user_id=1, friend_id=2),
+        Friendship(user_id=1, friend_id=3),
+    ])
+    db.commit()
+
+    leaderboard = Leaderboard(db)
+
+    # Insert leaderboard entries directly with known scores
+    # user 2 → highest score
+    # user 1 → medium
+    # user 3 → lowest
+    db.add_all([
+        LeaderboardEntry(user_id=1, score=50),
+        LeaderboardEntry(user_id=2, score=100),
+        LeaderboardEntry(user_id=3, score=10),
+    ])
+    db.commit()
+
+    # Act
+    entries = leaderboard.get_friends_entries(1)
+
+    # Assert
+    assert len(entries) == 3
+
+    # Sorted by score DESCENDING
+    assert [e.user_id for e in entries] == [2, 1, 3]

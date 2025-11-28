@@ -3,6 +3,8 @@ from typing import Any, Dict, List
 import httpx  # Will update to getting directly from DB once wired
 from nicegui import ui
 
+from phase2.leaderboard import get_leaderboard_repository
+
 API_BASE_URL = "http://localhost:8000" 
 
 
@@ -106,8 +108,49 @@ def leaderboard_page() -> None:
     def load_data():
         table.rows = fetch_leaderboard()
 
-    ui.button("Refresh", on_click=load_data).classes("mt-4")
+    def load_friends_leaderboard():
+        user_id = 1
+        new_rows = fetch_friends_leaderboard(user_id)
+        print(new_rows)
+        table.rows = new_rows
 
+    ui.button("Refresh", on_click=load_data).classes("mt-4")
+    ui.button("Load friends leaderboard", on_click=load_friends_leaderboard)
+
+def fetch_friends_leaderboard(user_id: int | None):
+    """Fetch friends-only leaderboard data using Leaderboard class."""
+    print("called")
+    if not user_id:
+        user_id = 1
+
+    try:
+        lb = get_leaderboard_repository()
+        entries = lb.get_friends_entries(user_id)
+    except AttributeError:
+        entries = [{
+            "entry_id": 3,
+            "user_id": "Amy",
+            "daily_streak": 10,
+            "longest_daily_streak": 12,
+            "average_daily_guesses": 2,
+            "average_daily_time": "19.7s",
+            "longest_survival_streak": 20,
+                       "high_score": 2005,
+        },
+        {
+            "entry_id": 4,
+            "user_id": "Dave",
+            "daily_streak": 0,
+            "longest_daily_streak": 1,
+            "average_daily_guesses": 5,
+            "average_daily_time": "42.0s",
+            "longest_survival_streak": 4,
+            "high_score": 980,
+        },]
+    
+    return entries
+
+        
 
 if __name__ in {"__main__", "__mp_main__"}:
     leaderboard_page()

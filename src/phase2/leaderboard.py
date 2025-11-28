@@ -1,10 +1,12 @@
 from datetime import timedelta
 
 from pydantic import BaseModel
-from shared.database import Base
+from shared.database import Base, get_db
 from sqlalchemy import Integer, Interval, Sequence, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, Session, mapped_column
+
+from phase2.friends import Friendship
 
 
 class LeaderboardEntry(Base):
@@ -23,7 +25,7 @@ class LeaderboardEntry(Base):
     )  # highest daily streak ever recorded
     average_daily_guesses: Mapped[int] = mapped_column(Integer, default=0)
     average_daily_time: Mapped[timedelta] = mapped_column(
-        Interval, default=0
+        Interval,  default=timedelta(seconds=0)
     )  # average time to complete the daily in seconds
     longest_survival_streak: Mapped[int] = mapped_column(Integer, default=0)
     score: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -135,15 +137,30 @@ class Leaderboard:
 
         return self.session.execute(stmt).scalars().all()
 
-    async def get_friend_entries(self, user_id: int) -> list[LeaderboardEntry]:
+    def get_friends_entries(self, user_id: int) -> list[LeaderboardEntry]:
         """
         Get all leaderboard entries for the given user's friends only
         (including the given user)
         """
 
-        #  TODO this one's a bit harder so still working on the logic for it
+        # Get friend IDs 
+        stmt = select(Friendship.friend_id).where(Friendship.user_id == user_id)
+        friend_ids = self.session.execute(stmt).scalars().all()
 
-        pass
+        # Always include the user's own ID
+        friend_ids.append(user_id)
+
+        # Remove duplicates 
+        friend_ids = list(set(friend_ids))
+
+        # Query leaderboard entries for the 
+        stmt = select(LeaderboardEntry).where(LeaderboardEntry.user_id.in_(friend_ids))
+        entries = self.session.execute(stmt).scalars().all()
+
+        #  Sort by score descending
+        entries.sort(key=lambda e: e.score, reverse=True)
+
+        return entries
 
     async def get_score(self, user_id: int) -> int:
         """
@@ -171,3 +188,8 @@ class LeaderboardEntrySchema(BaseModel):
     average_daily_guesses: int
     average_daily_time: timedelta
     longest_survival_streak: int
+
+
+def get_leaderboard_repository() -> Leaderboard:
+    db = get_db()
+    return Leaderboard(session=db)

@@ -94,7 +94,7 @@ class RoundStatisticsRepository:
         )
         return self.session.execute(statement).scalars().one_or_none()
 
-    def get_leaderboard_stats_for_user(self, user_id: int) -> LeaderboardStats or None:
+    def get_leaderboard_stats_for_user(self, user_id: int) -> LeaderboardStats | None:
         """
         Grab and put RoundStatistics rows for this user into a single
         LeaderboardStats object (same shape as FakeStats in tests).

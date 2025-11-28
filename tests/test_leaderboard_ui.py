@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+from unittest.mock import patch
 
 import httpx
 import pytest
@@ -173,3 +174,25 @@ def test_fetch_leaderboard_with_fallback_data(
     assert top["user_id"] == "Amy"
     assert top["daily_streak"] == 10
     assert top["rank"] == 1
+
+
+# Non-GUI test for fetch_friends_leaderboard
+def test_fetch_friends_leaderboard(monkeypatch: pytest.MonkeyPatch) -> None:
+
+    from game.leaderboard_ui import fetch_friends_leaderboard
+
+    fake_user_id = 42
+
+    # Mock DB connection
+    patcher = patch("phase2.leaderboard.get_db")
+    mock_db = patcher.start()
+    mock_db.return_value = None
+
+    result = fetch_friends_leaderboard(fake_user_id)
+
+    mock_db.assert_called_once()
+
+    # Returned rows
+    assert result
+
+    patcher.stop()

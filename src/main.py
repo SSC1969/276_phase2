@@ -34,6 +34,7 @@ class LogElementHandler(logging.Handler):
         try:
             msg = self.format(record)
             self.element.push(msg)
+            print(msg)
         except Exception:
             self.handleError(record)
 
@@ -85,7 +86,6 @@ def index_page():
 @ui.page("/leaderboard")
 def _():
     leaderboard_page()
-
 
 
 ui.run(title="CMPT276 Project", dark=None)
