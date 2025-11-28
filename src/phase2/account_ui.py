@@ -268,9 +268,14 @@ def account_ui(
             friend_name_input = ui.input("Friend username")
 
             async def send_request():
-                ok = await friends_repo.send_request(user.id, friend_name_input.value)
+                target =  await user_repo.get_by_name(friend_name_input.value)
+                if not target:
+                    ui.notify("User not found.", color="red")
+                    return
+
+                ok = await friends_repo.send_request(user.id, target.id)
                 if ok:
-                    ui.notify("Friend request sent!")
+                    ui.notify("Friend request sent!", color="green")
                 else:
                     ui.notify("User not found or already friends.", color="red")
 
@@ -284,13 +289,14 @@ def account_ui(
                 ui.label("No pending requests.")
 
             for req in requests:
+                requestor = await user_repo.get_by_id(req.requestor_id)
                 with ui.row().classes("w-full justify-between"):
-                    ui.label(req.name)
+                    ui.label(requestor.name)
                     with ui.row():
                         ui.button("Accept", 
-                                  on_click=lambda r=req: friends_repo.accept(user.id, r.id))
+                                  on_click=lambda r=req: friends_repo.accept_request(r.id))
                         ui.button("Reject", 
-                                  on_click=lambda r=req: friends_repo.reject(user.id, r.id))
+                                  on_click=lambda r=req: friends_repo.reject_request(r.id))
 
 
             ui.label("Your Friends:").classes("mt-4 font-bold")
@@ -298,9 +304,15 @@ def account_ui(
             friends = await friends_repo.list_friends(user.id)
             if not friends:
                 ui.label("You have no friends yet.")
-
-            for f in friends:
-                ui.label("• " + f.name)
+            else:
+                for fr in friends:
+                    with ui.row().classes("w-full justify-between items-center"):
+                        ui.label(fr.name)
+                        ui.button(
+                            "Remove",
+                            on_click=lambda: friends_repo.delete_friendship(user.id, fr.id),
+                            color="red"
+                        )
 
             ui.button("Back", on_click=lambda: ui.navigate.to("/account")
                       ).classes("w-full mt-4")
