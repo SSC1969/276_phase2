@@ -2,6 +2,9 @@ from typing import Any, Dict, List
 
 import httpx  # Will update to getting directly from DB once wired
 from nicegui import ui
+from shared.database import get_db
+
+from phase2.leaderboard import Leaderboard
 
 API_BASE_URL = "http://localhost:8000" 
 
@@ -108,6 +111,14 @@ def leaderboard_page() -> None:
 
     ui.button("Refresh", on_click=load_data).classes("mt-4")
 
+def fetch_friends_leaderboard(user_id: int):
+    """Fetch friends-only leaderboard data using Leaderboard class."""
+    db = get_db()
+    try:
+        lb = Leaderboard(db)
+        return lb.get_friends_entries(user_id)
+    finally:
+        db.close()
 
 if __name__ in {"__main__", "__mp_main__"}:
     leaderboard_page()

@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+from unittest.mock import MagicMock
 
 import httpx
 import pytest
@@ -173,3 +174,43 @@ def test_fetch_leaderboard_with_fallback_data(
     assert top["user_id"] == "Amy"
     assert top["daily_streak"] == 10
     assert top["rank"] == 1
+
+
+# Non-GUI test for fetch_friends_leaderboard
+def test_fetch_friends_leaderboard(monkeypatch: pytest.MonkeyPatch) -> None:
+    from game import leaderboard_ui
+    from game.leaderboard_ui import fetch_friends_leaderboard
+
+    fake_user_id = 42
+    fake_rows = [
+        {"user_id": 2, "score": 100},
+        {"user_id": 1, "score": 50},
+    ]
+
+    # Mock DB connection
+    mock_db = MagicMock()
+    monkeypatch.setattr(leaderboard_ui, "get_db", lambda: mock_db)
+
+    # Mock Leaderboard instance
+    mock_lb_instance = MagicMock()
+    mock_lb_instance.get_friends_entries.return_value = fake_rows
+
+    # Mock Leaderboard class to return the fake instance
+    monkeypatch.setattr(
+        leaderboard_ui,
+        "Leaderboard",
+        MagicMock(return_value=mock_lb_instance)
+    )
+
+    result = fetch_friends_leaderboard(fake_user_id)
+
+    leaderboard_ui.Leaderboard.assert_called_once_with(mock_db)
+
+    # get_friends_entries(user_id) was called
+    mock_lb_instance.get_friends_entries.assert_called_once_with(fake_user_id)
+
+    # DB was closed
+    mock_db.close.assert_called_once()
+
+    # Returned rows match fake_rows
+    assert result == fake_rows
