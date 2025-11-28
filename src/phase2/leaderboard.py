@@ -1,11 +1,11 @@
 from datetime import timedelta
 
 from pydantic import BaseModel
-from shared.database import Base
+from shared.database import Base, get_db
 from sqlalchemy import Integer, Interval, Sequence, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, Session, mapped_column
-from shared.database import get_db
+
 from phase2.friends import Friendship
 
 

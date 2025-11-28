@@ -2,9 +2,8 @@ from typing import Any, Dict, List
 
 import httpx  # Will update to getting directly from DB once wired
 from nicegui import ui
-from shared.database import get_db
 
-from phase2.leaderboard import Leaderboard, get_leaderboard_repository
+from phase2.leaderboard import get_leaderboard_repository
 
 API_BASE_URL = "http://localhost:8000" 
 
