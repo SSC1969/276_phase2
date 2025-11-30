@@ -88,4 +88,4 @@ def _():
     leaderboard_page()
 
 
-ui.run(title="CMPT276 Project", dark=None)
+ui.run(title="CountryClue", dark=None)
