@@ -6,9 +6,8 @@ from sqlalchemy import Float, Integer, Sequence, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
-from user_service.src.shared.database import Base, get_db
-from user_service.src.user_service.models.friends import get_friendship_repository
-
+from user_service.models.friends import get_friendship_repository
+from shared import Base, get_db
 
 class LeaderboardEntry(Base):
     __tablename__ = "leaderboard_entry"
@@ -182,11 +181,6 @@ class LeaderboardRepository:
 
         return entry.score
 
-
-def get_leaderboard_repository(db: Session = Depends(get_db)) -> LeaderboardRepository:
-    return LeaderboardRepository(db)
-
-
 class LeaderboardEntrySchema(BaseModel):
     id: int
     user_id: int
@@ -197,6 +191,5 @@ class LeaderboardEntrySchema(BaseModel):
     longest_survival_streak: int
 
 
-def get_leaderboard_repository() -> LeaderboardRepository:
-    db = get_db()
-    return LeaderboardRepository(session=db)
+def get_leaderboard_repository(db: Session = Depends(get_db)) -> LeaderboardRepository:
+    return LeaderboardRepository(db)

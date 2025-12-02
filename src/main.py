@@ -1,13 +1,11 @@
 import logging
 import os
 
-from user_service import admin
 from nicegui import app, ui
 from nicegui.events import KeyEventArguments
 
 from game import game_ui
 from game.daily import get_daily_country
-from game.leaderboard_ui import leaderboard_page
 from local_repos.auth import LocalAuthRepo
 from local_repos.friends import LocalFriendsRepo
 from local_repos.stats import LocalStatisticsRepo

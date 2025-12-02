@@ -1,4 +1,4 @@
-import httpx                                      # HTTP requests
+import httpx  # HTTP requests
 
 
 class FriendsAPI:

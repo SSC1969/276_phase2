@@ -6,11 +6,14 @@ import bcrypt
 from nicegui import app, events, ui
 from PIL import Image, ImageOps
 
-from local_repos.auth import LocalAuthRepo
-from local_repos.friends import LocalFriendsRepo
 from local_repos.stats import LocalStatisticsRepo
-from local_repos.users import LocalUserRepo
-from ...user_service.src.user_service.models import User, UserRepository    
+from phase2.api_clients.auth import AuthAPI
+from phase2.api_clients.friends import FriendsAPI
+
+# changing it so it fetches from api instead of local repo
+from phase2.api_clients.users import UserAPI
+
+# from phase2.api_clients.stats import StatsAPI
 
 DEFAULT_AVATAR = Path("avatars/default.jpg")
 AVATAR_DIR = Path("avatars")
@@ -60,9 +63,9 @@ def get_avatar_path(user_id: int) -> Path:
 
 """ ACCOUNT UI """
 def account_ui(
-    user_repo: LocalUserRepo, 
-    friends_repo: LocalFriendsRepo, 
-    auth_repo: LocalAuthRepo, 
+    user_api: UserAPI,
+    friends_api: FriendsAPI, 
+    auth_api: AuthAPI, 
     stats_repo: LocalStatisticsRepo
 ):
     async def ensure_authenticated():
@@ -131,21 +134,22 @@ def account_ui(
             email = ui.input("Email")
             password = ui.input("Password", password=True)
 
-            async def try_create():
-                new_user = await user_repo.create(username.value, email.value, password.value)
-                if not new_user:
-                    ui.notify("Username or email already exists", color="red")
-                    return
-                
-                token = await auth_repo.create(new_user.id)
-                SESSION["user"] = new_user
-                SESSION["token"] = token
-                ui.navigate.to("/account")
+           
+        async def try_create():
+            response = await user_api.create(username.value, email.value, password.value)
 
-            ui.button("Register", on_click=try_create).classes("w-full")
-            ui.button("Back", on_click=lambda: ui.navigate.to("/login")
-                      ).classes("w-full mt-2")
+            if response.status_code != 201:
+                ui.notify("User already exists or invalid", color="red")
+                return
+            
+            user_data = response.json()     # What your FastAPI returns
 
+            # Store session info
+            SESSION["user"] = user_data      # optional, depending on your API
+            SESSION["token"] = None          # later when you add login API
+
+            ui.notify("Account created!", color="green")
+            ui.navigate.to("/login")
 
     """ 
     ACCOUNT DASHBOARD 

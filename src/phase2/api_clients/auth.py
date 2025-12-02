@@ -1,5 +1,6 @@
-import httpx                                        # HTTP requests
-from datetime import datetime, timedelta            # for expiry calculation
+from datetime import datetime, timedelta  # for expiry calculation
+
+import httpx  # HTTP requests
 
 
 class AuthAPI:
@@ -11,7 +12,8 @@ class AuthAPI:
     # LOGIN (returns JWT)
     # -----------------------
     async def login(self, user_id: int, password: str):
-        expiry = (datetime.utcnow() + timedelta(minutes=45))     # expiry timestamp
+        expiry = (datetime.utc() + timedelta(minutes=45))     # expiry timestamp
+
         expiry_str = expiry.strftime("%Y-%m-%d %H:%M:%S")        # format required by API
 
         body = {                                                 # login body
