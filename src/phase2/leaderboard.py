@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from datetime import timedelta
 
 from pydantic import BaseModel
@@ -7,6 +8,15 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from phase2.friends import Friendship
+=======
+from fastapi import Depends
+from pydantic import BaseModel
+from sqlalchemy import Float, Integer, Sequence, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Mapped, Session, mapped_column
+
+from user_service.src.shared.database import Base, get_db
+>>>>>>> 5361ad7e13c5c9682098c91ce566c7a03f45fd9d
 
 
 class LeaderboardEntry(Base):
@@ -24,6 +34,7 @@ class LeaderboardEntry(Base):
         Integer, default=0
     )  # highest daily streak ever recorded
     average_daily_guesses: Mapped[int] = mapped_column(Integer, default=0)
+<<<<<<< HEAD
     average_daily_time: Mapped[timedelta] = mapped_column(
         Interval,  default=timedelta(seconds=0)
     )  # average time to complete the daily in seconds
@@ -33,6 +44,17 @@ class LeaderboardEntry(Base):
 
 class Leaderboard:
     def __init__(self, session: Session, stats_repo=None):
+=======
+    average_daily_time: Mapped[float] = mapped_column(
+        Float, default=0
+    )  # average time to complete the daily in seconds
+    longest_survival_streak: Mapped[int] = mapped_column(Integer, default=0)
+    score: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class LeaderboardRepository:
+    def __init__(self, session: Session):
+>>>>>>> 5361ad7e13c5c9682098c91ce566c7a03f45fd9d
         self.session = session
         self.stats_repo = stats_repo
 
@@ -137,7 +159,11 @@ class Leaderboard:
 
         return self.session.execute(stmt).scalars().all()
 
+<<<<<<< HEAD
     def get_friends_entries(self, user_id: int) -> list[LeaderboardEntry]:
+=======
+    async def get_friend_entries(self, user_id: int) -> list[LeaderboardEntry]:
+>>>>>>> 5361ad7e13c5c9682098c91ce566c7a03f45fd9d
         """
         Get all leaderboard entries for the given user's friends only
         (including the given user)
@@ -180,6 +206,13 @@ class Leaderboard:
         return entry.score
 
 
+<<<<<<< HEAD
+=======
+def get_leaderboard_repository(db: Session = Depends(get_db)) -> LeaderboardRepository:
+    return LeaderboardRepository(db)
+
+
+>>>>>>> 5361ad7e13c5c9682098c91ce566c7a03f45fd9d
 class LeaderboardEntrySchema(BaseModel):
     id: int
     user_id: int
