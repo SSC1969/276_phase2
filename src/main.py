@@ -81,7 +81,7 @@ def index_page():
     game_ui.content()
 
 
-app.include_router(admin.router)
+# app.include_router(admin.router)
 ui.run(
     title="CMPT276 Project",
     dark=None,
