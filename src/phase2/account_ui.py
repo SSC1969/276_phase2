@@ -29,12 +29,18 @@ SESSION = {
     "token": None,
 }
 
-async def local_authenticate(user_repo, username: str, password: str):
+user_client = UserAPI()
+auth_client = AuthAPI()
+friends_client = FriendsAPI()
+
+
+async def local_authenticate(user_client, username: str, password: str):
     """
     Authenticate a user using LocalUserRepo.
     Returns the LocalUser object if valid, otherwise None.
     """
-    user = await user_repo.get_by_name(username)
+
+    user = await user_client.get_by_name(username)
     if not user:
         return None
 
@@ -62,12 +68,8 @@ def get_avatar_path(user_id: int) -> Path:
     return avatar_path if avatar_path.exists() else DEFAULT_AVATAR
 
 """ ACCOUNT UI """
-def account_ui(
-    user_api: UserAPI,
-    friends_api: FriendsAPI, 
-    auth_api: AuthAPI, 
-    stats_repo: LocalStatisticsRepo
-):
+def account_ui():
+    
     async def ensure_authenticated():
         if TEST:
             return True
@@ -76,7 +78,7 @@ def account_ui(
             ui.navigate.to("/login")
             return False
     
-        valid = await auth_repo.validate(SESSION["token"])
+        valid = await auth_client.validate(SESSION["token"])
         if not valid:
             SESSION["user"] = None
             SESSION["token"] = None
@@ -107,12 +109,13 @@ def account_ui(
             password = ui.input("Password", password=True)
 
             async def try_login():
-                user = await local_authenticate(user_repo, username.value, password.value)
+
+                user = await local_authenticate(user_client, username.value, password.value)
                 if not user:
                     ui.notify("Invalid credentials", color="red")
                     return
                 
-                token = await auth_repo.create(user.id)
+                token = await auth_client.create(user.id)
                 SESSION["user"] = user
                 SESSION["token"] = token
                 ui.navigate.to("/account")
@@ -134,21 +137,35 @@ def account_ui(
             email = ui.input("Email")
             password = ui.input("Password", password=True)
 
+            # Register button
+            ui.button(
+                "Register",
+                on_click=lambda: try_create()
+            ).classes("w-full")
+
            
         async def try_create():
-            response = await user_api.create(username.value, email.value, password.value)
+
+            response = await user_client.create(username.value, email.value, password.value)
+
+
+            print("user_client object is:", user_client)
+            print("type of response:", type(response))
+            print("response:", response)
 
             if response.status_code != 201:
                 ui.notify("User already exists or invalid", color="red")
                 return
             
+            print("This line is getting parsed")
             user_data = response.json()     # What your FastAPI returns
 
             # Store session info
             SESSION["user"] = user_data      # optional, depending on your API
             SESSION["token"] = None          # later when you add login API
 
-            ui.notify("Account created!", color="green")
+
+            ui.notify("Account created!", color="green")    
             ui.navigate.to("/login")
 
     """ 
@@ -165,7 +182,7 @@ def account_ui(
 
         async def logout():
             if user:
-                await auth_repo.delete(SESSION["user"].id)
+                await auth_client.delete(SESSION["user"].id)
 
             SESSION["user"] = None
             SESSION["token"] = None
@@ -214,7 +231,7 @@ def account_ui(
             pw_input = ui.input("New Password (optional)", password=True)
 
             async def save_profile():
-                await user_repo.update_user(
+                await user_client.update_user(
                     user.id,
                     name=name_input.value,
                     email=email_input.value,
@@ -273,12 +290,13 @@ def account_ui(
             friend_name_input = ui.input("Friend username")
 
             async def send_request():
-                target =  await user_repo.get_by_name(friend_name_input.value)
+
+                target =  await user_client.get_by_name(friend_name_input.value)
                 if not target:
                     ui.notify("User not found.", color="red")
                     return
 
-                ok = await friends_repo.send_request(user.id, target.id)
+                ok = await friends_client.send_request(user.id, target.id)
                 if ok:
                     ui.notify("Friend request sent!", color="green")
                 else:
@@ -289,24 +307,25 @@ def account_ui(
 
             ui.label("Incoming Requests:").classes("mt-4 font-bold")
 
-            requests = await friends_repo.get_requests(user.id)
+            requests = await friends_client.get_requests(user.id)
             if not requests:
                 ui.label("No pending requests.")
 
             for req in requests:
-                requestor = await user_repo.get_by_id(req.requestor_id)
+
+                requestor = await user_client.get_by_id(req.requestor_id)
                 with ui.row().classes("w-full justify-between"):
                     ui.label(requestor.name)
                     with ui.row():
                         ui.button("Accept", 
-                                  on_click=lambda r=req: friends_repo.accept_request(r.id))
+                                  on_click=lambda r=req: friends_client.accept_request(r.id))
                         ui.button("Reject", 
-                                  on_click=lambda r=req: friends_repo.reject_request(r.id))
+                                  on_click=lambda r=req: friends_client.reject_request(r.id))
 
 
             ui.label("Your Friends:").classes("mt-4 font-bold")
 
-            friends = await friends_repo.list_friends(user.id)
+            friends = await friends_client.list_friends(user.id)
             if not friends:
                 ui.label("You have no friends yet.")
             else:
@@ -315,7 +334,7 @@ def account_ui(
                         ui.label(fr.name)
                         ui.button(
                             "Remove",
-                            on_click=lambda: friends_repo.delete_friendship(user.id, fr.id),
+                            on_click=lambda: friends_client.delete_friendship(user.id, fr.id),
                             color="red"
                         )
 
@@ -328,36 +347,36 @@ def account_ui(
     STATISTICS PAGE
     
     show user statistics
-    """
-    @ui.page("/account/stats")
-    async def stats_page():
-        if not await ensure_authenticated():
-            return
+    # """
+    # @ui.page("/account/stats")
+    # async def stats_page():
+    #     if not await ensure_authenticated():
+    #         return
 
-        user = SESSION["user"]
+    #     user = SESSION["user"]
 
-        stats = stats_repo.get_leaderboard_stats_for_user(user.id)
+    #     stats = stats_repo.get_leaderboard_stats_for_user(user.id)
 
-        with ui.card().classes("absolute-center w-128 p-6 gap-4"):
-            ui.label("Your Statistics").classes("text-3xl font-bold mb-4 text-center")
+    #     with ui.card().classes("absolute-center w-128 p-6 gap-4"):
+    #         ui.label("Your Statistics").classes("text-3xl font-bold mb-4 text-center")
 
-            if not stats:
-                ui.label("You have no game statistics yet.").classes("text-lg")
-            else:
-                ui.label(f"Daily Streak: {stats.daily_streak}").classes("text-lg")
-                ui.label(f"Longest Daily Streak: {stats.longest_daily_streak}"
-                         ).classes("text-lg")
-                ui.label(f"Average Daily Guesses: {stats.average_daily_guesses:.2f}"
-                         ).classes("text-lg")
-                ui.label(f"Average Daily Time: {stats.average_daily_time}"
-                         ).classes("text-lg")
-                ui.label(f"Longest Survival Streak: {stats.longest_survival_streak}"
-                         ).classes("text-lg")
+    #         if not stats:
+    #             ui.label("You have no game statistics yet.").classes("text-lg")
+    #         else:
+    #             ui.label(f"Daily Streak: {stats.daily_streak}").classes("text-lg")
+    #             ui.label(f"Longest Daily Streak: {stats.longest_daily_streak}"
+    #                      ).classes("text-lg")
+    #             ui.label(f"Average Daily Guesses: {stats.average_daily_guesses:.2f}"
+    #                      ).classes("text-lg")
+    #             ui.label(f"Average Daily Time: {stats.average_daily_time}"
+    #                      ).classes("text-lg")
+    #             ui.label(f"Longest Survival Streak: {stats.longest_survival_streak}"
+    #                      ).classes("text-lg")
 
-                ui.separator()
-                ui.label(f"Overall Score: {stats.score}").classes("text-xl font-bold")
+    #             ui.separator()
+    #             ui.label(f"Overall Score: {stats.score}").classes("text-xl font-bold")
 
-            ui.button("Back", on_click=lambda: ui.navigate.to("/account")
-                      ).classes("w-full mt-4")
-            ui.button("Back to Game", on_click=lambda: ui.navigate.to("/")
-                      ).classes("w-full")
+    #         ui.button("Back", on_click=lambda: ui.navigate.to("/account")
+    #                   ).classes("w-full mt-4")
+    #         ui.button("Back to Game", on_click=lambda: ui.navigate.to("/")
+    #                   ).classes("w-full")

@@ -12,12 +12,12 @@ from local_repos.stats import LocalStatisticsRepo
 from local_repos.users import LocalUserRepo
 from phase2.account_ui import account_ui
 
-user_repo = LocalUserRepo()
-friends_repo = LocalFriendsRepo(user_repo)
-auth_repo = LocalAuthRepo()
-stats_repo = LocalStatisticsRepo()
+# user_repo = LocalUserRepo()
+# friends_repo = LocalFriendsRepo(user_repo)
+# auth_repo = LocalAuthRepo()
+# stats_repo = LocalStatisticsRepo()
 
-account_ui(user_repo, friends_repo, auth_repo, stats_repo)
+account_ui()
 logger = logging.getLogger("phase2")
 
 
