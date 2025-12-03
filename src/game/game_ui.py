@@ -146,15 +146,15 @@ def content():
             ui.label(f"Guesses: {round_stats.guesses}")
 
             # Display leaderboard only if user is logged in
-            if app.storage.user.get(USER_SESSION_STORAGE, False):
+            if app.storage.user.get(USER_SESSION_STORAGE + "_user", False):
                 await popup_leaderboard("daily")
             ui.button("Close", on_click=dialog.close)
 
             dialog.open()
 
     def go_to_account():
-        user_session = app.storage.user.get(USER_SESSION_STORAGE, False)
-        if user_session and "user" in user_session:
+        user_id = app.storage.user.get(USER_SESSION_STORAGE + "_user", False)
+        if user_id:
             ui.navigate.to("/account")
         else:
             ui.navigate.to("account/login?redirect_to=/account")
@@ -266,8 +266,7 @@ async def popup_leaderboard(mode: str):
     new_rows = await fetch_leaderboard()
     table = ui.table(columns=columns, rows=new_rows, row_key="entry_id", pagination=10)
 
-    user_session = app.storage.user.get(USER_SESSION_STORAGE, False)
-    user_id = user_session["user"].id
+    user_id = app.storage.user.get(USER_SESSION_STORAGE + "_user", False)
     row_index = None
     # Iterate through table until finding the correct entry
     for i, entry in enumerate(new_rows):
