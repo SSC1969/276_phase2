@@ -8,7 +8,7 @@ from nicegui import Event
 
 from phase2.country import Country
 
-MAX_GUESSES = 5
+MAX_GUESSES = 7
 
 
 class GuessFeedback:

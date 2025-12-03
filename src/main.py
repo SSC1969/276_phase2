@@ -8,6 +8,7 @@ from nicegui.events import KeyEventArguments
 
 from game import game_ui, init_repos, leaderboard_ui
 from game.daily import get_daily_country
+from game.survival_ui import survival_content
 from phase2 import account_ui
 
 logger = logging.getLogger("phase2")
@@ -70,6 +71,11 @@ def index_page(repos=Depends(init_repos)):
     ui.keyboard(on_key=handle_key)
 
     game_ui.content()
+
+
+@ui.page("/survival")
+def _():
+    survival_content()
 
 
 ui.run(title="CMPT276 Project", dark=None)

@@ -163,6 +163,7 @@ def content():
         with ui.button(icon="menu"):
             with ui.menu().props("auto-close") as menu:
                 ui.menu_item("Account", go_to_account)
+                ui.menu_item("Survival Mode", lambda: ui.navigate.to("/survival"))
                 ui.separator()
                 ui.menu_item("Close", menu.close)
 
