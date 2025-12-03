@@ -9,7 +9,6 @@ from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 from user_service.models.user import User
 
 from phase2.friends import Friendship
-from phase2.statistics import RoundStatisticsRepository
 
 
 class LeaderboardEntry(Base):
@@ -37,9 +36,6 @@ class LeaderboardEntry(Base):
 class LeaderboardRepository:
     def __init__(self, session: Session):
         self.session = session
-        stats_repo = RoundStatisticsRepository(self.session)
-
-        self.stats_repo = stats_repo
 
     async def sync_user_entry(self, user_id: int) -> LeaderboardEntry | None:
         """
@@ -191,6 +187,7 @@ def get_leaderboard_repository(
     repo = LeaderboardRepository(db)
     if stats_repo:
         stats_repo.lb_repo = repo
+        repo.stats_repo = stats_repo
     return repo
 
 

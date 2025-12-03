@@ -4,6 +4,7 @@ from datetime import date
 
 from nicegui import app
 
+from game import repos
 from phase2.account_ui import SESSION_STORAGE_NAME as USER_SESSION_STORAGE
 from phase2.country import Country, get_country, get_random_country
 from phase2.round import GuessFeedback, RoundStats
@@ -153,7 +154,8 @@ async def end_game(won: bool, round_stats: RoundStats):
         print(user_session)
         round_stats.user_id = user_session["user"].id
         # Add round to the round stats database
-        await round_stats.stats_repo.add_round(round_stats)
+        stats_repo = repos["stats_repo"]
+        await stats_repo.add_round(round_stats)
 
     # Show game stats in UI
     round_stats.game_ended.emit(won)

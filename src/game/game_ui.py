@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 
 from nicegui import app, ui
 
-from game import repos
 from game.daily import get_daily_country, handle_guess
 from game.leaderboard_ui import fetch_leaderboard
 from phase2.account_ui import SESSION_STORAGE_NAME as USER_SESSION_STORAGE
@@ -32,7 +31,6 @@ less_than_arrow = r"clip-path: polygon(98% 60%,80% 60%,80% 5%,20% 5%,20% 60%,3% 
 
 def content():
     round_stats = RoundStats(mode="daily")
-    round_stats.stats_repo = repos["stats_repo"]
 
     options = []
     with open("src/game/countries.json") as file:
@@ -156,10 +154,10 @@ def content():
 
     def go_to_account():
         user_session = app.storage.user.get(USER_SESSION_STORAGE, False)
-        if user_session.get("user"):
+        if user_session and "user" in user_session:
             ui.navigate.to("/account")
         else:
-            ui.navigate.to("/login?redirect_to=/account")
+            ui.navigate.to("account/login?redirect_to=/account")
 
     with ui.page_sticky(position="top-right", x_offset=20, y_offset=20):
         with ui.button(icon="menu"):
